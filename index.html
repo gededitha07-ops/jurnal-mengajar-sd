@@ -218,6 +218,9 @@ Simpan Catatan
 <button onclick="cetakLaporan()">
 Cetak / Simpan PDF
 </button>
+<button onclick="bagikanLaporan()">
+Bagikan Laporan
+</button>  
 
 <button onclick="show('home')">
 Kembali
@@ -604,6 +607,30 @@ function cetakLaporan(){
 
     window.print();
 }
+ async function bagikanLaporan(){
+
+    let laporan = document.getElementById('laporan');
+
+    if(!laporan){
+        alert('Bagian laporan tidak ditemukan');
+        return;
+    }
+
+    let teks = laporan.innerText;
+
+    if(navigator.share){
+        try{
+            await navigator.share({
+                title: 'Laporan Jurnal Mengajar SD',
+                text: teks
+            });
+        }catch(e){
+            console.log('Berbagi dibatalkan');
+        }
+    }else{
+        alert('Fitur berbagi tidak didukung browser ini');
+    }
+}   
 function backup(){
 
     let isiBackup = JSON.stringify(db, null, 2);
