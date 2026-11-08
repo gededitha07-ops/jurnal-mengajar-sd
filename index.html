@@ -148,8 +148,21 @@ Jumlah jurnal tersimpan: <b id="jumlah">0</b>
 
 <h3>Laporan Jurnal Mengajar</h3>
 
-<label>Pilih Bulan Laporan Jurnal</label>
-<input type="month" id="bulan">
+<label>Jenis Laporan Jurnal</label>
+<select id="jenisLaporan" onchange="ubahJenisLaporan()">
+    <option value="harian">Harian</option>
+    <option value="bulanan">Bulanan</option>
+</select>
+
+<div id="pilihanTanggalJurnal">
+    <label>Pilih Tanggal</label>
+    <input type="date" id="tanggalLaporan">
+</div>
+
+<div id="pilihanBulanJurnal" class="hidden">
+    <label>Pilih Bulan</label>
+    <input type="month" id="bulan">
+</div>
 
 <button onclick="tampilkanLaporan()">
 Tampilkan Jurnal
@@ -320,12 +333,59 @@ namaSekolah.value=p.sekolah||'';
 kelas.value=p.kelas||'';
 tahun.value=p.tahun||'';
 }
+function ubahJenisLaporan(){
 
+    let jenis = document.getElementById('jenisLaporan').value;
+
+    document.getElementById('pilihanTanggalJurnal')
+        .classList.toggle('hidden', jenis !== 'harian');
+
+    document.getElementById('pilihanBulanJurnal')
+        .classList.toggle('hidden', jenis !== 'bulanan');
+}
 function tampilkanLaporan(){
-let b=bulan.value;
-let data=db.jurnal.filter(j=>j.tanggal.startsWith(b));
-hasilLaporan.innerHTML='<h3>'+data.length+' Jurnal</h3>'+
-data.map(j=>`<div class="item"><b>${esc(j.tanggal)} - ${esc(j.mapel)}</b><br>${esc(j.materi)}<br>${esc(j.hasil)}</div>`).join('');
+
+    let jenis = document.getElementById('jenisLaporan').value;
+
+    let periode = jenis === 'harian'
+        ? document.getElementById('tanggalLaporan').value
+        : document.getElementById('bulan').value;
+
+    if(!periode){
+        alert('Silakan pilih tanggal atau bulan');
+        return;
+    }
+
+    let data = db.jurnal.filter(j => {
+
+        if(jenis === 'harian'){
+            return j.tanggal === periode;
+        }
+
+        return j.tanggal &&
+               j.tanggal.startsWith(periode);
+    });
+
+    let html = `<h3>${data.length} Jurnal</h3>`;
+
+    if(data.length === 0){
+        html += '<p>Tidak ada jurnal pada periode ini.</p>';
+    }
+
+    data.forEach(j => {
+
+        html += `
+        <div class="item">
+            <b>${esc(j.tanggal)} - ${esc(j.mapel)}</b>
+            <p>Materi: ${esc(j.materi)}</p>
+            <p>Tujuan: ${esc(j.tujuan)}</p>
+            <p>Metode: ${esc(j.metode)}</p>
+            <p>Hasil: ${esc(j.hasil)}</p>
+            <p>Catatan: ${esc(j.catatan)}</p>
+        </div>`;
+    });
+
+    document.getElementById('hasilLaporan').innerHTML = html;
 }
 function ubahPilihanHadir(){
 
