@@ -107,13 +107,39 @@ Jumlah jurnal tersimpan: <b id="jumlah">0</b>
 </section>
 
 <section id="laporan" class="card hidden">
-<h3>Laporan Jurnal</h3>
-<label>Pilih Bulan</label>
+
+<h3>Laporan Jurnal Mengajar</h3>
+
+<label>Pilih Bulan Laporan Jurnal</label>
 <input type="month" id="bulan">
-<button onclick="tampilkanLaporan()">Tampilkan</button>
+
+<button onclick="tampilkanLaporan()">
+Tampilkan Jurnal
+</button>
+
 <div id="hasilLaporan"></div>
-<button onclick="window.print()">Cetak / Simpan PDF</button>
-<button onclick="show('home')">Kembali</button>
+
+<hr>
+
+<h3>Laporan Kehadiran Siswa</h3>
+
+<label>Pilih Bulan Kehadiran</label>
+<input type="month" id="bulanHadir">
+
+<button onclick="tampilkanRekapHadir()">
+Tampilkan Rekap Kehadiran
+</button>
+
+<div id="hasilRekapHadir"></div>
+
+<button onclick="cetakLaporan()">
+Cetak / Simpan PDF
+</button>
+
+<button onclick="show('home')">
+Kembali
+</button>
+
 </section>
 
 <section id="pengaturan" class="card hidden">
