@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jurnal Mengajar SD</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f1f5fb;color:#202b3c}
+header{background:#075db8;color:white;padding:20px}
+header h2{margin:0}
+main{max-width:750px;margin:auto;padding:14px}
+.card{background:white;padding:16px;margin-bottom:13px;border-radius:13px;box-shadow:0 2px 8px #0001}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.menu{background:white;border:1px solid #dce7f5;border-radius:12px;padding:20px 8px;text-align:center;font-weight:bold;color:#075db8;font-size:15px}
+.menu span{display:block;font-size:27px;margin-bottom:8px}
+button{background:#0868ca;color:white;border:0;padding:12px;border-radius:8px;font-weight:bold;margin-top:10px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ccd8e8;border-radius:8px;font-size:15px}
+label{display:block;font-weight:bold;margin:12px 0 6px}
+.hidden{display:none}
+.item{padding:12px;border-bottom:1px solid #ddd}
+h3{color:#075db8}
+@media print{header,button,.no-print{display:none!important}body{background:white}}
+</style>
+</head>
+<body>
+
+<header>
+<h2>📚 JURNAL MENGAJAR SD</h2>
+<p>Mencatat, Mengevaluasi, Meningkatkan</p>
+</header>
+
+<main>
+<div class="card">
+<b id="sekolahTampil">Nama Sekolah</b><br>
+<span id="guruTampil">Nama Guru</span><br>
+<span id="kelasTampil">Kelas</span>
+</div>
+
+<section id="home">
+<div class="grid">
+<div class="menu" onclick="show('jurnal')"><span>📖</span>Jurnal Mengajar</div>
+<div class="menu" onclick="show('jadwal')"><span>🗓️</span>Jadwal Pelajaran</div>
+<div class="menu" onclick="show('siswa')"><span>👨‍🎓</span>Data Siswa</div>
+<div class="menu" onclick="show('hadir')"><span>☑️</span>Kehadiran</div>
+<div class="menu" onclick="show('laporan')"><span>📊</span>Laporan</div>
+<div class="menu" onclick="show('pengaturan')"><span>⚙️</span>Pengaturan</div>
+</div>
+<div class="card">
+<h3>Ringkasan</h3>
+Jumlah jurnal tersimpan: <b id="jumlah">0</b>
+</div>
+</section>
+
+<section id="jurnal" class="card hidden">
+<h3>Jurnal Mengajar Harian</h3>
+<label>Tanggal</label>
+<input type="date" id="tanggal">
+<label>Mata Pelajaran</label>
+<input id="mapel" placeholder="Nama mata pelajaran">
+<label>Materi Pembelajaran</label>
+<input id="materi" placeholder="Materi yang diajarkan">
+<label>Tujuan Pembelajaran</label>
+<textarea id="tujuan"></textarea>
+<label>Metode Pembelajaran</label>
+<input id="metode">
+<label>Kegiatan Pembukaan</label>
+<textarea id="pembukaan"></textarea>
+<label>Kegiatan Inti</label>
+<textarea id="inti"></textarea>
+<label>Kegiatan Penutup</label>
+<textarea id="penutup"></textarea>
+<label>Hasil Pembelajaran</label>
+<textarea id="hasil"></textarea>
+<label>Kendala / Catatan</label>
+<textarea id="catatan"></textarea>
+<button onclick="simpanJurnal()">Simpan Jurnal</button>
+<button onclick="show('home')">Kembali</button>
+</section>
+
+<section id="jadwal" class="card hidden">
+<h3>Jadwal Pelajaran</h3>
+<label>Hari</label><input id="hari">
+<label>Jam</label><input id="jam">
+<label>Mata Pelajaran</label><input id="jadwalMapel">
+<button onclick="tambahJadwal()">Tambah Jadwal</button>
+<div id="daftarJadwal"></div>
+<button onclick="show('home')">Kembali</button>
+</section>
+
+<section id="siswa" class="card hidden">
+<h3>Data Siswa</h3>
+<label>Nama Siswa</label>
+<input id="namaSiswa">
+<button onclick="tambahSiswa()">Tambah Siswa</button>
+<div id="daftarSiswa"></div>
+<button onclick="show('home')">Kembali</button>
+</section>
+
+<section id="hadir" class="card hidden">
+<h3>Kehadiran Siswa</h3>
+<label>Tanggal</label>
+<input type="date" id="tanggalHadir">
+<div id="daftarHadir"></div>
+<button onclick="simpanHadir()">Simpan Kehadiran</button>
+<button onclick="show('home')">Kembali</button>
+</section>
+
+<section id="laporan" class="card hidden">
+<h3>Laporan Jurnal</h3>
+<label>Pilih Bulan</label>
+<input type="month" id="bulan">
+<button onclick="tampilkanLaporan()">Tampilkan</button>
+<div id="hasilLaporan"></div>
+<button onclick="window.print()">Cetak / Simpan PDF</button>
+<button onclick="show('home')">Kembali</button>
+</section>
+
+<section id="pengaturan" class="card hidden">
+<h3>Identitas Guru</h3>
+<label>Nama Guru</label><input id="namaGuru">
+<label>Nama Sekolah</label><input id="namaSekolah">
+<label>Kelas</label><input id="kelas">
+<label>Tahun Ajaran</label><input id="tahun">
+<button onclick="simpanProfil()">Simpan Identitas</button>
+<h3>Backup Data</h3>
+<button onclick="backup()">Simpan Backup JSON</button>
+<label>Pulihkan Backup</label>
+<input type="file" id="fileBackup" accept=".json" onchange="restore(event)">
+<button onclick="show('home')">Kembali</button>
+</section>
+</main>
+
+<script>
+let db=JSON.parse(localStorage.getItem('jurnalSD')||
+'{"jurnal":[],"siswa":[],"jadwal":[],"hadir":{},"profil":{}}');
+
+function simpanData(){
+localStorage.setItem('jurnalSD',JSON.stringify(db));
+}
+
+function show(id){
+document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+if(id==='siswa')renderSiswa();
+if(id==='jadwal')renderJadwal();
+if(id==='hadir')renderHadir();
+}
+
+function simpanJurnal(){
+let j={
+tanggal:document.getElementById('tanggal').value,
+mapel:mapel.value.trim(),
+materi:materi.value.trim(),
+tujuan:tujuan.value,
+metode:metode.value,
+pembukaan:pembukaan.value,
+inti:inti.value,
+penutup:penutup.value,
+hasil:hasil.value,
+catatan:catatan.value
+};
+if(!j.tanggal||!j.mapel||!j.materi){
+alert('Tanggal, mata pelajaran dan materi wajib diisi');
+return;
+}
+db.jurnal.push(j);
+simpanData();
+update();
+alert('Jurnal berhasil disimpan');
+show('home');
+}
+
+function update(){
+jumlah.textContent=db.jurnal.length;
+}
+
+function tambahSiswa(){
+let n=namaSiswa.value.trim();
+if(!n)return;
+db.siswa.push(n);
+namaSiswa.value='';
+simpanData();
+renderSiswa();
+}
+
+function renderSiswa(){
+daftarSiswa.innerHTML=db.siswa.map((n,i)=>
+`<div class="item">${i+1}. ${esc(n)}</div>`).join('');
+}
+
+function tambahJadwal(){
+if(!hari.value||!jam.value||!jadwalMapel.value)return;
+db.jadwal.push({hari:hari.value,jam:jam.value,mapel:jadwalMapel.value});
+simpanData();
+renderJadwal();
+hari.value='';jam.value='';jadwalMapel.value='';
+}
+
+function renderJadwal(){
+daftarJadwal.innerHTML=db.jadwal.map(j=>
+`<div class="item">${esc(j.hari)} | ${esc(j.jam)} | ${esc(j.mapel)}</div>`).join('');
+}
+
+function renderHadir(){
+tanggalHadir.value=tanggalHadir.value||new Date().toISOString().slice(0,10);
+daftarHadir.innerHTML=db.siswa.map((n,i)=>
+`<div class="item">${esc(n)}
+<select data-index="${i}">
+<option>Hadir</option><option>Izin</option>
+<option>Sakit</option><option>Alfa</option>
+</select></div>`).join('');
+}
+
+function simpanHadir(){
+let t=tanggalHadir.value;
+db.hadir[t]={};
+document.querySelectorAll('#daftarHadir select').forEach(s=>
+db.hadir[t][s.dataset.index]=s.value);
+simpanData();
+alert('Kehadiran disimpan');
+}
+
+function simpanProfil(){
+db.profil={
+guru:namaGuru.value,
+sekolah:namaSekolah.value,
+kelas:kelas.value,
+tahun:tahun.value
+};
+simpanData();
+profil();
+alert('Identitas berhasil disimpan');
+}
+
+function profil(){
+let p=db.profil;
+sekolahTampil.textContent=p.sekolah||'Nama Sekolah';
+guruTampil.textContent=p.guru||'Nama Guru';
+kelasTampil.textContent=(p.kelas?'Kelas '+p.kelas:'Kelas')+(p.tahun?' | '+p.tahun:'');
+namaGuru.value=p.guru||'';
+namaSekolah.value=p.sekolah||'';
+kelas.value=p.kelas||'';
+tahun.value=p.tahun||'';
+}
+
+function tampilkanLaporan(){
+let b=bulan.value;
+let data=db.jurnal.filter(j=>j.tanggal.startsWith(b));
+hasilLaporan.innerHTML='<h3>'+data.length+' Jurnal</h3>'+
+data.map(j=>`<div class="item"><b>${esc(j.tanggal)} - ${esc(j.mapel)}</b><br>${esc(j.materi)}<br>${esc(j.hasil)}</div>`).join('');
+}
+
+function backup(){
+let a=document.createElement('a');
+let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+a.href=URL.createObjectURL(blob);
+a.download='backup-jurnal-sd.json';
+a.click();
+URL.revokeObjectURL(a.href);
+}
+
+function restore(e){
+let f=e.target.files[0];
+if(!f)return;
+let r=new FileReader();
+r.onload=()=>{
+try{
+let d=JSON.parse(r.result);
+if(!Array.isArray(d.jurnal)||!Array.isArray(d.siswa))throw 0;
+if(!confirm('Pulihkan data backup?'))return;
+db=d;simpanData();profil();update();
+alert('Data berhasil dipulihkan');
+}catch(err){alert('File backup tidak valid');}
+};
+r.readAsText(f);
+}
+
+function esc(s){
+return String(s||'').replace(/[&<>"']/g,c=>
+({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+tanggal.value=new Date().toISOString().slice(0,10);
+profil();
+update();
+</script>
+</body>
+</html>
