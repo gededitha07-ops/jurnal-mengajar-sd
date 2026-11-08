@@ -174,8 +174,11 @@ Tampilkan Jurnal
 
 <h3>Riwayat Kehadiran Siswa</h3>
 
-<label>Pilih Tanggal Riwayat</label>
-<input type="date" id="tanggalRiwayat">
+<label>Dari Tanggal</label>
+<input type="date" id="tanggalRiwayatMulai">
+
+<label>Sampai Tanggal</label>
+<input type="date" id="tanggalRiwayatSampai">
 
 <button onclick="tampilkanRiwayatHadir()">
 Tampilkan Riwayat Kehadiran
@@ -475,17 +478,24 @@ function tampilkanLaporan(){
     document.getElementById('hasilLaporan').innerHTML = html;
 }
 
-
 function tampilkanRiwayatHadir(){
 
-    let tanggal = document.getElementById('tanggalRiwayat').value;
+    let mulai = document.getElementById('tanggalRiwayatMulai').value;
+    let sampai = document.getElementById('tanggalRiwayatSampai').value;
 
-    if(!tanggal){
-        alert('Silakan pilih tanggal');
+    if(!mulai || !sampai){
+        alert('Silakan pilih tanggal mulai dan sampai');
         return;
     }
 
-    let data = db.hadir[tanggal] || {};
+    if(mulai > sampai){
+        alert('Tanggal mulai tidak boleh melebihi tanggal sampai');
+        return;
+    }
+
+    let tanggalList = Object.keys(db.hadir || {})
+        .filter(t => t >= mulai && t <= sampai)
+        .sort();
 
     if(db.siswa.length === 0){
         document.getElementById('hasilRiwayatHadir').innerHTML =
@@ -493,33 +503,45 @@ function tampilkanRiwayatHadir(){
         return;
     }
 
-    let html = `
-    <h3>Riwayat Kehadiran ${tanggal}</h3>
-    <table border="1" cellpadding="7" cellspacing="0" width="100%">
-        <tr>
-            <th>No</th>
-            <th>Nama Siswa</th>
-            <th>Status</th>
-        </tr>
-    `;
+    if(tanggalList.length === 0){
+        document.getElementById('hasilRiwayatHadir').innerHTML =
+            '<p>Tidak ada catatan kehadiran pada rentang tanggal tersebut.</p>';
+        return;
+    }
 
-    db.siswa.forEach((s, i) => {
+    let html = '';
 
-        let nama = typeof s === 'string' ? s : s.nama;
-        let status = data[i] || 'Belum dicatat';
+    tanggalList.forEach(tanggal => {
 
         html += `
-        <tr>
-            <td>${i+1}</td>
-            <td>${esc(nama)}</td>
-            <td>${esc(status)}</td>
-        </tr>`;
-    });
+        <h3>Riwayat Kehadiran ${tanggal}</h3>
+        <table border="1" cellpadding="7" cellspacing="0" width="100%">
+            <tr>
+                <th>No</th>
+                <th>Nama Siswa</th>
+                <th>Status</th>
+            </tr>
+        `;
 
-    html += '</table>';
+        db.siswa.forEach((s, i) => {
+
+            let nama = typeof s === 'string' ? s : s.nama;
+            let status = db.hadir[tanggal][i] || 'Belum dicatat';
+
+            html += `
+            <tr>
+                <td>${i+1}</td>
+                <td>${esc(nama)}</td>
+                <td>${esc(status)}</td>
+            </tr>`;
+        });
+
+        html += '</table><br>';
+    });
 
     document.getElementById('hasilRiwayatHadir').innerHTML = html;
 }
+
 function muatPilihanSiswa(){
 
     let pilih = document.getElementById('siswaPerkembangan');
