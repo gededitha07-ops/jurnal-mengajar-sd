@@ -123,8 +123,21 @@ Tampilkan Jurnal
 
 <h3>Laporan Kehadiran Siswa</h3>
 
-<label>Pilih Bulan Kehadiran</label>
-<input type="month" id="bulanHadir">
+<label>Jenis Laporan Kehadiran</label>
+<select id="jenisHadir" onchange="ubahPilihanHadir()">
+    <option value="harian">Harian</option>
+    <option value="bulanan">Bulanan</option>
+</select>
+
+<div id="pilihanHarian">
+    <label>Pilih Tanggal</label>
+    <input type="date" id="tanggalHadir">
+</div>
+
+<div id="pilihanBulanan" class="hidden">
+    <label>Pilih Bulan</label>
+    <input type="month" id="bulanHadir">
+</div>
 
 <button onclick="tampilkanRekapHadir()">
 Tampilkan Rekap Kehadiran
@@ -276,13 +289,27 @@ let data=db.jurnal.filter(j=>j.tanggal.startsWith(b));
 hasilLaporan.innerHTML='<h3>'+data.length+' Jurnal</h3>'+
 data.map(j=>`<div class="item"><b>${esc(j.tanggal)} - ${esc(j.mapel)}</b><br>${esc(j.materi)}<br>${esc(j.hasil)}</div>`).join('');
 }
+function ubahPilihanHadir(){
+
+    let jenis = document.getElementById('jenisHadir').value;
+
+    document.getElementById('pilihanHarian')
+        .classList.toggle('hidden', jenis !== 'harian');
+
+    document.getElementById('pilihanBulanan')
+        .classList.toggle('hidden', jenis !== 'bulanan');
+}
+
+
 function tampilkanRekapHadir(){
 
-    let bulanDipilih =
-        document.getElementById('bulanHadir').value;
+    let jenis = document.getElementById('jenisHadir').value;
+    let periode = jenis === 'harian'
+        ? document.getElementById('tanggalHadir').value
+        : document.getElementById('bulanHadir').value;
 
-    if(!bulanDipilih){
-        alert('Pilih bulan terlebih dahulu');
+    if(!periode){
+        alert('Silakan pilih tanggal atau bulan');
         return;
     }
 
@@ -296,7 +323,8 @@ function tampilkanRekapHadir(){
 
     Object.keys(db.hadir).forEach(tanggal => {
 
-        if(!tanggal.startsWith(bulanDipilih)) return;
+        if(jenis === 'harian' && tanggal !== periode) return;
+        if(jenis === 'bulanan' && !tanggal.startsWith(periode)) return;
 
         let data = db.hadir[tanggal];
 
@@ -320,9 +348,8 @@ function tampilkanRekapHadir(){
     };
 
     let html = `
-    <h3>Rekap Kehadiran Bulan ${bulanDipilih}</h3>
-    <table border="1" cellpadding="7"
-    cellspacing="0" width="100%">
+    <h3>Rekap Kehadiran ${jenis === 'harian' ? periode : periode}</h3>
+    <table border="1" cellpadding="7" cellspacing="0" width="100%">
     <tr>
         <th>Nama Siswa</th>
         <th>Hadir</th>
@@ -334,17 +361,12 @@ function tampilkanRekapHadir(){
 
     rekap.forEach(s => {
 
-        let jumlah =
-            s.Hadir + s.Izin + s.Sakit + s.Alfa;
-
+        let jumlah = s.Hadir + s.Izin + s.Sakit + s.Alfa;
         let persen = jumlah
             ? Math.round(s.Hadir / jumlah * 100)
             : 0;
 
-        total.Hadir += s.Hadir;
-        total.Izin += s.Izin;
-        total.Sakit += s.Sakit;
-        total.Alfa += s.Alfa;
+        Object.keys(total).forEach(k => total[k] += s[k]);
 
         html += `
         <tr>
@@ -357,19 +379,16 @@ function tampilkanRekapHadir(){
         </tr>`;
     });
 
-    html += '</table>';
-
     html += `
+    </table>
     <h3>Jumlah Seluruh Kehadiran</h3>
     <p>Hadir: ${total.Hadir}</p>
     <p>Izin: ${total.Izin}</p>
     <p>Sakit: ${total.Sakit}</p>
     <p>Alfa: ${total.Alfa}</p>`;
 
-    document.getElementById('hasilRekapHadir').innerHTML =
-        html;
+    document.getElementById('hasilRekapHadir').innerHTML = html;
 }
-
 function cetakLaporan(){
 
     if(window.Android &&
