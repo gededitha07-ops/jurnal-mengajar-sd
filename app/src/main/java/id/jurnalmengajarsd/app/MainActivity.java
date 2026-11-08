@@ -1,17 +1,16 @@
 package id.jurnalmengajarsd.app;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebViewClient;
 import android.print.PrintManager;
 import android.print.PrintDocumentAdapter;
 import android.content.Context;
-import android.webkit.WebViewClient;
 
-import androidx.activity.ComponentActivity;
-
-public class MainActivity extends ComponentActivity {
+public class MainActivity extends Activity {
 
     private WebView webView;
 
@@ -44,14 +43,5 @@ public class MainActivity extends ComponentActivity {
         }, "Android");
 
         webView.loadUrl("file:///android_asset/index.html");
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
     }
 }
