@@ -292,31 +292,41 @@ daftarJadwal.innerHTML=db.jadwal.map(j=>
 `<div class="item">${esc(j.hari)} | ${esc(j.jam)} | ${esc(j.mapel)}</div>`).join('');
 }
 
+
 function renderHadir(){
 
-    if(!tanggalHadir.value){
-        tanggalHadir.value =
-            new Date().toISOString().slice(0,10);
+    let tanggal = document.getElementById('tanggalHadir').value;
+
+    if(!tanggal){
+        let d = new Date();
+        tanggal =
+            d.getFullYear() + '-' +
+            String(d.getMonth()+1).padStart(2,'0') + '-' +
+            String(d.getDate()).padStart(2,'0');
+
+        document.getElementById('tanggalHadir').value = tanggal;
     }
 
-    let tanggal = tanggalHadir.value;
+    if(!db.hadir) db.hadir = {};
+
     let dataTersimpan = db.hadir[tanggal] || {};
 
-    daftarHadir.innerHTML = db.siswa.map((n,i)=>{
+    document.getElementById('daftarHadir').innerHTML =
+        db.siswa.map((n,i)=>{
 
-        let status = dataTersimpan[i] || 'Hadir';
+            let status = dataTersimpan[i] || 'Hadir';
 
-        return `
-        <div class="item">
-            ${esc(n)}
-            <select data-index="${i}">
-                <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
-                <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
-                <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
-                <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
-            </select>
-        </div>`;
-    }).join('');
+            return `
+            <div class="item">
+                ${i+1}. ${esc(n)}
+                <select data-index="${i}">
+                    <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
+                    <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
+                    <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
+                    <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
+                </select>
+            </div>`;
+        }).join('');
 }
 
 function simpanHadir(){
