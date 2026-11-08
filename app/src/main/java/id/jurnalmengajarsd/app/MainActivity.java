@@ -15,6 +15,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private WebView webView;
+    private WebView printWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +33,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new Object() {
 
             @JavascriptInterface
-            public void cetak() {
+            public void cetak(String html) {
                 runOnUiThread(() -> {
                     try {
                         PrintManager manager =
@@ -49,14 +50,45 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-                        PrintDocumentAdapter adapter =
-                            webView.createPrintDocumentAdapter(
-                                "Jurnal-Mengajar-SD"
-                            );
+                        printWebView = new WebView(MainActivity.this);
 
-                        manager.print(
-                            "Jurnal-Mengajar-SD",
-                            adapter,
+                        printWebView.setWebViewClient(
+                            new WebViewClient() {
+                                @Override
+                                public void onPageFinished(
+                                    WebView view, String url
+                                ) {
+                                    PrintDocumentAdapter adapter =
+                                        view.createPrintDocumentAdapter(
+                                            "Laporan-Jurnal-Mengajar-SD"
+                                        );
+
+                                    manager.print(
+                                        "Laporan-Jurnal-Mengajar-SD",
+                                        adapter,
+                                        null
+                                    );
+                                }
+                            }
+                        );
+
+                        String halaman =
+                            "<html><head><meta charset='UTF-8'>" +
+                            "<style>" +
+                            "body{font-family:Arial;padding:15px;color:#202b3c}" +
+                            "table{width:100%;border-collapse:collapse}" +
+                            "th,td{border:1px solid #777;padding:7px;text-align:left}" +
+                            "button,input,select,textarea,label{display:none!important}" +
+                            "@page{margin:12mm}" +
+                            "</style></head><body>" +
+                            html +
+                            "</body></html>";
+
+                        printWebView.loadDataWithBaseURL(
+                            null,
+                            halaman,
+                            "text/html",
+                            "UTF-8",
                             null
                         );
 
