@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -21,7 +20,45 @@ label{display:block;font-weight:bold;margin:12px 0 6px}
 .hidden{display:none}
 .item{padding:12px;border-bottom:1px solid #ddd}
 h3{color:#075db8}
-@media print{header,button,.no-print{display:none!important}body{background:white}}
+@media print{
+
+    body *{
+        visibility:hidden!important;
+    }
+
+    #laporan,
+    #laporan *{
+        visibility:visible!important;
+    }
+
+    #laporan{
+        display:block!important;
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        margin:0;
+        padding:0;
+        box-shadow:none;
+        border:none;
+        background:white;
+    }
+
+    #laporan button,
+    #laporan input,
+    #laporan select,
+    #laporan label{
+        display:none!important;
+    }
+
+    body{
+        background:white;
+    }
+}
+
+@page{
+    margin:12mm;
+}
 </style>
 </head>
 <body>
@@ -101,20 +138,97 @@ Jumlah jurnal tersimpan: <b id="jumlah">0</b>
 <section id="hadir" class="card hidden">
 <h3>Kehadiran Siswa</h3>
 <label>Tanggal</label>
-<input type="date" id="tanggalHadir">
+<input type="date" id="tanggalHadir" onchange="renderHadir()">
 <div id="daftarHadir"></div>
 <button onclick="simpanHadir()">Simpan Kehadiran</button>
 <button onclick="show('home')">Kembali</button>
 </section>
 
 <section id="laporan" class="card hidden">
-<h3>Laporan Jurnal</h3>
-<label>Pilih Bulan</label>
-<input type="month" id="bulan">
-<button onclick="tampilkanLaporan()">Tampilkan</button>
+
+<h3>Laporan Jurnal Mengajar</h3>
+
+<label>Jenis Laporan Jurnal</label>
+<select id="jenisLaporan" onchange="ubahJenisLaporan()">
+    <option value="harian">Harian</option>
+    <option value="bulanan">Bulanan</option>
+</select>
+
+<div id="pilihanTanggalJurnal">
+    <label>Pilih Tanggal</label>
+    <input type="date" id="tanggalLaporan">
+</div>
+
+<div id="pilihanBulanJurnal" class="hidden">
+    <label>Pilih Bulan</label>
+    <input type="month" id="bulan">
+</div>
+
+<button onclick="tampilkanLaporan()">
+Tampilkan Jurnal
+</button>
+
 <div id="hasilLaporan"></div>
-<button onclick="window.print()">Cetak / Simpan PDF</button>
-<button onclick="show('home')">Kembali</button>
+
+<hr>
+
+<h3>Riwayat Kehadiran Siswa</h3>
+
+<label>Dari Tanggal</label>
+<input type="date" id="tanggalRiwayatMulai">
+
+<label>Sampai Tanggal</label>
+<input type="date" id="tanggalRiwayatSampai">
+
+<button onclick="tampilkanRiwayatHadir()">
+Tampilkan Riwayat Kehadiran
+</button>
+
+<div id="hasilRiwayatHadir"></div>
+    <hr>
+
+<h3>Catatan Perkembangan Siswa</h3>
+
+<label>Nama Siswa</label>
+<select id="siswaPerkembangan">
+    <option value="">Pilih Siswa</option>
+</select>
+
+<label>Tanggal Catatan</label>
+<input type="date" id="tanggalPerkembangan">
+
+<label>Perkembangan Belajar</label>
+<textarea id="belajarPerkembangan"
+placeholder="Tuliskan perkembangan belajar siswa"></textarea>
+
+<label>Sikap dan Perilaku</label>
+<textarea id="sikapPerkembangan"
+placeholder="Tuliskan sikap dan perilaku siswa"></textarea>
+
+<label>Prestasi atau Pencapaian</label>
+<textarea id="prestasiPerkembangan"
+placeholder="Tuliskan prestasi siswa"></textarea>
+
+<label>Catatan Guru</label>
+<textarea id="catatanPerkembangan"
+placeholder="Catatan tambahan dari guru"></textarea>
+
+<button onclick="simpanPerkembangan()">
+Simpan Catatan
+</button>
+
+<div id="daftarPerkembangan"></div>
+
+<button onclick="bagikanLaporan()">
+Bagikan Laporan
+</button>  
+<button onclick="cetakLaporan()">
+Save as PDF
+</button>
+<button onclick="show('home')">
+Kembali
+</button>
+
 </section>
 
 <section id="pengaturan" class="card hidden">
@@ -142,10 +256,17 @@ localStorage.setItem('jurnalSD',JSON.stringify(db));
 
 function show(id){
 document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+
 document.getElementById(id).classList.remove('hidden');
+
 if(id==='siswa')renderSiswa();
 if(id==='jadwal')renderJadwal();
 if(id==='hadir')renderHadir();
+
+if(id==='laporan'){
+    muatPilihanSiswa();
+    tampilkanPerkembangan();
+}
 }
 
 function simpanJurnal(){
@@ -203,23 +324,81 @@ daftarJadwal.innerHTML=db.jadwal.map(j=>
 `<div class="item">${esc(j.hari)} | ${esc(j.jam)} | ${esc(j.mapel)}</div>`).join('');
 }
 
-function renderHadir(){
-tanggalHadir.value=tanggalHadir.value||new Date().toISOString().slice(0,10);
-daftarHadir.innerHTML=db.siswa.map((n,i)=>
-`<div class="item">${esc(n)}
-<select data-index="${i}">
-<option>Hadir</option><option>Izin</option>
-<option>Sakit</option><option>Alfa</option>
-</select></div>`).join('');
-}
 
 function simpanHadir(){
-let t=tanggalHadir.value;
-db.hadir[t]={};
-document.querySelectorAll('#daftarHadir select').forEach(s=>
-db.hadir[t][s.dataset.index]=s.value);
-simpanData();
-alert('Kehadiran disimpan');
+
+    let t = document.getElementById('tanggalHadir').value;
+
+    if(!t){
+        alert('Silakan pilih tanggal');
+        return;
+    }
+
+    if(!db.hadir) db.hadir = {};
+
+    db.hadir[t] = db.hadir[t] || {};
+
+    document.querySelectorAll('#daftarHadir select').forEach(s => {
+        db.hadir[t][s.dataset.index] = s.value;
+    });
+
+    simpanData();
+
+    alert('Kehadiran tanggal ' + t + ' berhasil disimpan');
+}
+
+
+    function renderHadir(){
+
+    let tanggalInput = document.getElementById('tanggalHadir');
+
+    if(!tanggalInput){
+        alert('Kolom tanggal kehadiran tidak ditemukan');
+        return;
+    }
+
+    if(!db.siswa){
+        db.siswa = [];
+    }
+
+    if(!db.hadir){
+        db.hadir = {};
+    }
+
+    if(!tanggalInput.value){
+        let d = new Date();
+        tanggalInput.value =
+            d.getFullYear() + '-' +
+            String(d.getMonth()+1).padStart(2,'0') + '-' +
+            String(d.getDate()).padStart(2,'0');
+    }
+
+    let tanggal = tanggalInput.value;
+    let dataTersimpan = db.hadir[tanggal] || {};
+
+    let daftar = document.getElementById('daftarHadir');
+
+    if(db.siswa.length === 0){
+        daftar.innerHTML = '<p>Belum ada data siswa.</p>';
+        return;
+    }
+
+    daftar.innerHTML = db.siswa.map((n,i)=>{
+
+        let nama = typeof n === 'string' ? n : n.nama;
+        let status = dataTersimpan[i] || 'Hadir';
+
+        return `
+        <div class="item">
+            ${i+1}. ${esc(nama)}
+            <select data-index="${i}">
+                <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
+                <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
+                <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
+                <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
+            </select>
+        </div>`;
+    }).join('');
 }
 
 function simpanProfil(){
@@ -244,21 +423,262 @@ namaSekolah.value=p.sekolah||'';
 kelas.value=p.kelas||'';
 tahun.value=p.tahun||'';
 }
+function ubahJenisLaporan(){
 
+    let jenis = document.getElementById('jenisLaporan').value;
+
+    document.getElementById('pilihanTanggalJurnal')
+        .classList.toggle('hidden', jenis !== 'harian');
+
+    document.getElementById('pilihanBulanJurnal')
+        .classList.toggle('hidden', jenis !== 'bulanan');
+}
 function tampilkanLaporan(){
-let b=bulan.value;
-let data=db.jurnal.filter(j=>j.tanggal.startsWith(b));
-hasilLaporan.innerHTML='<h3>'+data.length+' Jurnal</h3>'+
-data.map(j=>`<div class="item"><b>${esc(j.tanggal)} - ${esc(j.mapel)}</b><br>${esc(j.materi)}<br>${esc(j.hasil)}</div>`).join('');
+
+    let jenis = document.getElementById('jenisLaporan').value;
+
+    let periode = jenis === 'harian'
+        ? document.getElementById('tanggalLaporan').value
+        : document.getElementById('bulan').value;
+
+    if(!periode){
+        alert('Silakan pilih tanggal atau bulan');
+        return;
+    }
+
+    let data = db.jurnal.filter(j => {
+
+        if(jenis === 'harian'){
+            return j.tanggal === periode;
+        }
+
+        return j.tanggal &&
+               j.tanggal.startsWith(periode);
+    });
+
+    let html = `<h3>${data.length} Jurnal</h3>`;
+
+    if(data.length === 0){
+        html += '<p>Tidak ada jurnal pada periode ini.</p>';
+    }
+
+    data.forEach(j => {
+
+        html += `
+        <div class="item">
+            <b>${esc(j.tanggal)} - ${esc(j.mapel)}</b>
+            <p>Materi: ${esc(j.materi)}</p>
+            <p>Tujuan: ${esc(j.tujuan)}</p>
+            <p>Metode: ${esc(j.metode)}</p>
+            <p>Hasil: ${esc(j.hasil)}</p>
+            <p>Catatan: ${esc(j.catatan)}</p>
+        </div>`;
+    });
+
+    document.getElementById('hasilLaporan').innerHTML = html;
 }
 
+function tampilkanRiwayatHadir(){
+
+    let mulai = document.getElementById('tanggalRiwayatMulai').value;
+    let sampai = document.getElementById('tanggalRiwayatSampai').value;
+
+    if(!mulai || !sampai){
+        alert('Silakan pilih tanggal mulai dan sampai');
+        return;
+    }
+
+    if(mulai > sampai){
+        alert('Tanggal mulai tidak boleh melebihi tanggal sampai');
+        return;
+    }
+
+    let tanggalList = Object.keys(db.hadir || {})
+        .filter(t => t >= mulai && t <= sampai)
+        .sort();
+
+    if(db.siswa.length === 0){
+        document.getElementById('hasilRiwayatHadir').innerHTML =
+            '<p>Belum ada data siswa.</p>';
+        return;
+    }
+
+    if(tanggalList.length === 0){
+        document.getElementById('hasilRiwayatHadir').innerHTML =
+            '<p>Tidak ada catatan kehadiran pada rentang tanggal tersebut.</p>';
+        return;
+    }
+
+    let html = '';
+
+    tanggalList.forEach(tanggal => {
+
+        html += `
+        <h3>Riwayat Kehadiran ${tanggal}</h3>
+        <table border="1" cellpadding="7" cellspacing="0" width="100%">
+            <tr>
+                <th>No</th>
+                <th>Nama Siswa</th>
+                <th>Status</th>
+            </tr>
+        `;
+
+        db.siswa.forEach((s, i) => {
+
+            let nama = typeof s === 'string' ? s : s.nama;
+            let status = db.hadir[tanggal][i] || 'Belum dicatat';
+
+            html += `
+            <tr>
+                <td>${i+1}</td>
+                <td>${esc(nama)}</td>
+                <td>${esc(status)}</td>
+            </tr>`;
+        });
+
+        html += '</table><br>';
+    });
+
+    document.getElementById('hasilRiwayatHadir').innerHTML = html;
+}
+
+function muatPilihanSiswa(){
+
+    let pilih = document.getElementById('siswaPerkembangan');
+    let terpilih = pilih.value;
+
+    pilih.innerHTML = '<option value="">Pilih Siswa</option>';
+
+    db.siswa.forEach((s,i) => {
+        let nama = typeof s === 'string' ? s : s.nama;
+
+        pilih.innerHTML += `
+        <option value="${i}">${esc(nama)}</option>`;
+    });
+
+    pilih.value = terpilih;
+}
+
+
+function simpanPerkembangan(){
+
+    let index = document.getElementById('siswaPerkembangan').value;
+    let tanggal = document.getElementById('tanggalPerkembangan').value;
+
+    if(index === '' || !tanggal){
+        alert('Pilih siswa dan tanggal terlebih dahulu');
+        return;
+    }
+
+    let siswa = db.siswa[index];
+    let nama = typeof siswa === 'string' ? siswa : siswa.nama;
+
+    let catatan = {
+        nama: nama,
+        tanggal: tanggal,
+        belajar: document.getElementById('belajarPerkembangan').value,
+        sikap: document.getElementById('sikapPerkembangan').value,
+        prestasi: document.getElementById('prestasiPerkembangan').value,
+        catatan: document.getElementById('catatanPerkembangan').value
+    };
+
+    if(!db.perkembangan) db.perkembangan = [];
+
+    db.perkembangan.push(catatan);
+
+    simpanData();
+
+    alert('Catatan perkembangan berhasil disimpan');
+
+    document.getElementById('belajarPerkembangan').value = '';
+    document.getElementById('sikapPerkembangan').value = '';
+    document.getElementById('prestasiPerkembangan').value = '';
+    document.getElementById('catatanPerkembangan').value = '';
+
+    tampilkanPerkembangan();
+}
+
+
+function tampilkanPerkembangan(){
+
+    if(!db.perkembangan) db.perkembangan = [];
+
+    let html = '';
+
+    db.perkembangan.slice().reverse().forEach(c => {
+
+        html += `
+        <div class="item">
+            <b>${esc(c.nama)} - ${esc(c.tanggal)}</b>
+            <p>Perkembangan Belajar: ${esc(c.belajar)}</p>
+            <p>Sikap dan Perilaku: ${esc(c.sikap)}</p>
+            <p>Prestasi: ${esc(c.prestasi)}</p>
+            <p>Catatan Guru: ${esc(c.catatan)}</p>
+        </div>`;
+    });
+
+    document.getElementById('daftarPerkembangan').innerHTML =
+        html || '<p>Belum ada catatan perkembangan.</p>';
+}
+
+ async function bagikanLaporan(){
+
+    let laporan = document.getElementById('laporan');
+
+    if(!laporan){
+        alert('Bagian laporan tidak ditemukan');
+        return;
+    }
+
+    let teks = laporan.innerText;
+
+    if(navigator.share){
+        try{
+            await navigator.share({
+                title: 'Laporan Jurnal Mengajar SD',
+                text: teks
+            });
+        }catch(e){
+            console.log('Berbagi dibatalkan');
+        }
+    }else{
+        alert('Fitur berbagi tidak didukung browser ini');
+    }
+}   
+function cetakLaporan(){
+
+    if(window.Android && typeof Android.cetak === 'function'){
+        Android.cetak();
+    }else{
+        alert('Fitur cetak hanya tersedia di aplikasi Android.');
+    }
+
+}
 function backup(){
-let a=document.createElement('a');
-let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
-a.href=URL.createObjectURL(blob);
-a.download='backup-jurnal-sd.json';
-a.click();
-URL.revokeObjectURL(a.href);
+
+    let isiBackup = JSON.stringify(db, null, 2);
+
+    let file = new Blob(
+        [isiBackup],
+        {type:'application/json'}
+    );
+
+    let url = URL.createObjectURL(file);
+
+    let link = document.createElement('a');
+
+    link.href = url;
+    link.download = 'backup-jurnal-sd.json';
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 1000);
 }
 
 function restore(e){
