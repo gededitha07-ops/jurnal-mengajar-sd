@@ -138,7 +138,7 @@ Jumlah jurnal tersimpan: <b id="jumlah">0</b>
 <section id="hadir" class="card hidden">
 <h3>Kehadiran Siswa</h3>
 <label>Tanggal</label>
-<input type="date" id="tanggalHadir">
+<input type="date" id="tanggalRekapHadir">
 <div id="daftarHadir"></div>
 <button onclick="simpanHadir()">Simpan Kehadiran</button>
 <button onclick="show('home')">Kembali</button>
@@ -343,7 +343,7 @@ function tampilkanRekapHadir(){
 
     let jenis = document.getElementById('jenisHadir').value;
     let periode = jenis === 'harian'
-        ? document.getElementById('tanggalHadir').value
+        ? document.getElementById('tanggalRekapHadir').value
         : document.getElementById('bulanHadir').value;
 
     if(!periode){
