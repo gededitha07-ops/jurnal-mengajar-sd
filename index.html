@@ -293,22 +293,54 @@ daftarJadwal.innerHTML=db.jadwal.map(j=>
 }
 
 function renderHadir(){
-tanggalHadir.value=tanggalHadir.value||new Date().toISOString().slice(0,10);
-daftarHadir.innerHTML=db.siswa.map((n,i)=>
-`<div class="item">${esc(n)}
-<select data-index="${i}">
-<option>Hadir</option><option>Izin</option>
-<option>Sakit</option><option>Alfa</option>
-</select></div>`).join('');
+
+    if(!tanggalHadir.value){
+        tanggalHadir.value =
+            new Date().toISOString().slice(0,10);
+    }
+
+    let tanggal = tanggalHadir.value;
+    let dataTersimpan = db.hadir[tanggal] || {};
+
+    daftarHadir.innerHTML = db.siswa.map((n,i)=>{
+
+        let status = dataTersimpan[i] || 'Hadir';
+
+        return `
+        <div class="item">
+            ${esc(n)}
+            <select data-index="${i}">
+                <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
+                <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
+                <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
+                <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
+            </select>
+        </div>`;
+    }).join('');
 }
 
 function simpanHadir(){
-let t=tanggalHadir.value;
-db.hadir[t]={};
-document.querySelectorAll('#daftarHadir select').forEach(s=>
-db.hadir[t][s.dataset.index]=s.value);
-simpanData();
-alert('Kehadiran disimpan');
+
+    let t = document.getElementById('tanggalHadir').value;
+
+    if(!t){
+        alert('Silakan pilih tanggal');
+        return;
+    }
+
+    if(!db.hadir){
+        db.hadir = {};
+    }
+
+    db.hadir[t] = db.hadir[t] || {};
+
+    document.querySelectorAll('#daftarHadir select').forEach(s => {
+        db.hadir[t][s.dataset.index] = s.value;
+    });
+
+    simpanData();
+
+    alert('Kehadiran tanggal ' + t + ' berhasil disimpan');
 }
 
 function simpanProfil(){
