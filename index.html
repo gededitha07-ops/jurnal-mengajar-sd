@@ -138,7 +138,7 @@ Jumlah jurnal tersimpan: <b id="jumlah">0</b>
 <section id="hadir" class="card hidden">
 <h3>Kehadiran Siswa</h3>
 <label>Tanggal</label>
-<input type="date" id="tanggalRekapHadir">
+<input type="date" id="tanggalHadir">
 <div id="daftarHadir"></div>
 <button onclick="simpanHadir()">Simpan Kehadiran</button>
 <button onclick="show('home')">Kembali</button>
@@ -182,7 +182,7 @@ Tampilkan Jurnal
 
 <div id="pilihanHarian">
     <label>Pilih Tanggal</label>
-    <input type="date" id="tanggalHadir">
+    <input type="date" id="tanggalRekapHadir">
 </div>
 
 <div id="pilihanBulanan" class="hidden">
@@ -456,10 +456,10 @@ function ubahPilihanHadir(){
     bulanan.style.display = jenis === 'bulanan' ? 'block' : 'none';
 }
 
-
 function tampilkanRekapHadir(){
 
     let jenis = document.getElementById('jenisHadir').value;
+
     let periode = jenis === 'harian'
         ? document.getElementById('tanggalRekapHadir').value
         : document.getElementById('bulanHadir').value;
@@ -469,28 +469,26 @@ function tampilkanRekapHadir(){
         return;
     }
 
+    if(!db.hadir) db.hadir = {};
+
     let rekap = db.siswa.map(nama => ({
-        nama: nama,
+        nama: typeof nama === 'string' ? nama : nama.nama,
         Hadir: 0,
         Izin: 0,
         Sakit: 0,
         Alfa: 0
     }));
 
-    Object.keys(db.hadir).forEach(tanggal => {
+    Object.entries(db.hadir).forEach(([tanggal, data]) => {
 
         if(jenis === 'harian' && tanggal !== periode) return;
         if(jenis === 'bulanan' && !tanggal.startsWith(periode)) return;
 
-        let data = db.hadir[tanggal];
-
-        Object.keys(data).forEach(index => {
+        Object.entries(data).forEach(([index, status]) => {
 
             if(!rekap[index]) return;
 
-            let status = data[index];
-
-            if(rekap[index][status] !== undefined){
+            if(['Hadir','Izin','Sakit','Alfa'].includes(status)){
                 rekap[index][status]++;
             }
         });
@@ -504,7 +502,7 @@ function tampilkanRekapHadir(){
     };
 
     let html = `
-    <h3>Rekap Kehadiran ${jenis === 'harian' ? periode : periode}</h3>
+    <h3>Rekap Kehadiran ${periode}</h3>
     <table border="1" cellpadding="7" cellspacing="0" width="100%">
     <tr>
         <th>Nama Siswa</th>
@@ -545,6 +543,8 @@ function tampilkanRekapHadir(){
 
     document.getElementById('hasilRekapHadir').innerHTML = html;
 }
+
+
 function cetakLaporan(){
 
     if(window.Android &&
