@@ -293,43 +293,6 @@ daftarJadwal.innerHTML=db.jadwal.map(j=>
 }
 
 
-
-function renderHadir(){
-
-    let tanggalInput = document.getElementById('tanggalHadir');
-
-    if(!tanggalInput.value){
-        let d = new Date();
-        tanggalInput.value =
-            d.getFullYear() + '-' +
-            String(d.getMonth()+1).padStart(2,'0') + '-' +
-            String(d.getDate()).padStart(2,'0');
-    }
-
-    let tanggal = tanggalInput.value;
-
-    if(!db.hadir) db.hadir = {};
-
-    let dataTersimpan = db.hadir[tanggal] || {};
-
-    document.getElementById('daftarHadir').innerHTML =
-        db.siswa.map((n,i)=>{
-
-            let status = dataTersimpan[i] || 'Hadir';
-
-            return `
-            <div class="item">
-                ${i+1}. ${esc(n)}
-                <select data-index="${i}">
-                    <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
-                    <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
-                    <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
-                    <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
-                </select>
-            </div>`;
-        }).join('');
-}
-
 function simpanHadir(){
 
     let t = document.getElementById('tanggalHadir').value;
@@ -339,9 +302,7 @@ function simpanHadir(){
         return;
     }
 
-    if(!db.hadir){
-        db.hadir = {};
-    }
+    if(!db.hadir) db.hadir = {};
 
     db.hadir[t] = db.hadir[t] || {};
 
@@ -352,6 +313,60 @@ function simpanHadir(){
     simpanData();
 
     alert('Kehadiran tanggal ' + t + ' berhasil disimpan');
+}
+
+
+    function renderHadir(){
+
+    let tanggalInput = document.getElementById('tanggalHadir');
+
+    if(!tanggalInput){
+        alert('Kolom tanggal kehadiran tidak ditemukan');
+        return;
+    }
+
+    if(!db.siswa){
+        db.siswa = [];
+    }
+
+    if(!db.hadir){
+        db.hadir = {};
+    }
+
+    if(!tanggalInput.value){
+        let d = new Date();
+        tanggalInput.value =
+            d.getFullYear() + '-' +
+            String(d.getMonth()+1).padStart(2,'0') + '-' +
+            String(d.getDate()).padStart(2,'0');
+    }
+
+    let tanggal = tanggalInput.value;
+    let dataTersimpan = db.hadir[tanggal] || {};
+
+    let daftar = document.getElementById('daftarHadir');
+
+    if(db.siswa.length === 0){
+        daftar.innerHTML = '<p>Belum ada data siswa.</p>';
+        return;
+    }
+
+    daftar.innerHTML = db.siswa.map((n,i)=>{
+
+        let nama = typeof n === 'string' ? n : n.nama;
+        let status = dataTersimpan[i] || 'Hadir';
+
+        return `
+        <div class="item">
+            ${i+1}. ${esc(nama)}
+            <select data-index="${i}">
+                <option value="Hadir" ${status==='Hadir'?'selected':''}>Hadir</option>
+                <option value="Izin" ${status==='Izin'?'selected':''}>Izin</option>
+                <option value="Sakit" ${status==='Sakit'?'selected':''}>Sakit</option>
+                <option value="Alfa" ${status==='Alfa'?'selected':''}>Alfa</option>
+            </select>
+        </div>`;
+    }).join('');
 }
 
 function simpanProfil(){
