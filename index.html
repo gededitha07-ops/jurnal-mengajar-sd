@@ -182,7 +182,7 @@ Tampilkan Jurnal
 
 <div id="pilihanHarian">
     <label>Pilih Tanggal</label>
-    <input type="date" id="tanggalRekapHadir">
+    <input type="date" id="tanggalHadir">
 </div>
 
 <div id="pilihanBulanan" class="hidden">
@@ -296,17 +296,17 @@ daftarJadwal.innerHTML=db.jadwal.map(j=>
 
 function renderHadir(){
 
-    let tanggal = document.getElementById('tanggalHadir').value;
+    let tanggalInput = document.getElementById('tanggalHadir');
 
-    if(!tanggal){
+    if(!tanggalInput.value){
         let d = new Date();
-        tanggal =
+        tanggalInput.value =
             d.getFullYear() + '-' +
             String(d.getMonth()+1).padStart(2,'0') + '-' +
             String(d.getDate()).padStart(2,'0');
-
-        document.getElementById('tanggalHadir').value = tanggal;
     }
+
+    let tanggal = tanggalInput.value;
 
     if(!db.hadir) db.hadir = {};
 
