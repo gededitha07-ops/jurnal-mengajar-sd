@@ -647,10 +647,23 @@ function tampilkanPerkembangan(){
 }   
 function cetakLaporan(){
 
+    let laporan = document.getElementById('laporan');
+
+    if(!laporan){
+        alert('Bagian laporan tidak ditemukan');
+        return;
+    }
+
+    let salinan = laporan.cloneNode(true);
+
+    salinan.querySelectorAll(
+        'button,input,select,textarea,label'
+    ).forEach(el => el.remove());
+
     if(window.Android && typeof Android.cetak === 'function'){
-        Android.cetak();
+        Android.cetak(salinan.innerHTML);
     }else{
-        alert('Fitur cetak hanya tersedia di aplikasi Android.');
+        alert('Fitur cetak Android tidak tersedia');
     }
 
 }
