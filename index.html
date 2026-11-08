@@ -172,30 +172,49 @@ Tampilkan Jurnal
 
 <hr>
 
-<h3>Laporan Kehadiran Siswa</h3>
+<h3>Riwayat Kehadiran Siswa</h3>
 
-<label>Jenis Laporan Kehadiran</label>
-<select id="jenisHadir" onchange="ubahPilihanHadir()">
-    <option value="harian">Harian</option>
-    <option value="bulanan">Bulanan</option>
-</select>
+<label>Pilih Tanggal Riwayat</label>
+<input type="date" id="tanggalRiwayat">
 
-<div id="pilihanHarian">
-    <label>Pilih Tanggal</label>
-    <input type="date" id="tanggalRekapHadir">
-</div>
-
-<div id="pilihanBulanan" class="hidden">
-    <label>Pilih Bulan</label>
-    <input type="month" id="bulanHadir">
-</div>
-
-<button onclick="tampilkanRekapHadir()">
-Tampilkan Rekap Kehadiran
+<button onclick="tampilkanRiwayatHadir()">
+Tampilkan Riwayat Kehadiran
 </button>
 
-<div id="hasilRekapHadir"></div>
+<div id="hasilRiwayatHadir"></div>
+    <hr>
 
+<h3>Catatan Perkembangan Siswa</h3>
+
+<label>Nama Siswa</label>
+<select id="siswaPerkembangan">
+    <option value="">Pilih Siswa</option>
+</select>
+
+<label>Tanggal Catatan</label>
+<input type="date" id="tanggalPerkembangan">
+
+<label>Perkembangan Belajar</label>
+<textarea id="belajarPerkembangan"
+placeholder="Tuliskan perkembangan belajar siswa"></textarea>
+
+<label>Sikap dan Perilaku</label>
+<textarea id="sikapPerkembangan"
+placeholder="Tuliskan sikap dan perilaku siswa"></textarea>
+
+<label>Prestasi atau Pencapaian</label>
+<textarea id="prestasiPerkembangan"
+placeholder="Tuliskan prestasi siswa"></textarea>
+
+<label>Catatan Guru</label>
+<textarea id="catatanPerkembangan"
+placeholder="Catatan tambahan dari guru"></textarea>
+
+<button onclick="simpanPerkembangan()">
+Simpan Catatan
+</button>
+
+<div id="daftarPerkembangan"></div>
 <button onclick="cetakLaporan()">
 Cetak / Simpan PDF
 </button>
@@ -231,10 +250,17 @@ localStorage.setItem('jurnalSD',JSON.stringify(db));
 
 function show(id){
 document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+
 document.getElementById(id).classList.remove('hidden');
+
 if(id==='siswa')renderSiswa();
 if(id==='jadwal')renderJadwal();
 if(id==='hadir')renderHadir();
+
+if(id==='laporan'){
+    muatPilihanSiswa();
+    tampilkanPerkembangan();
+}
 }
 
 function simpanJurnal(){
@@ -445,106 +471,130 @@ function tampilkanLaporan(){
 
     document.getElementById('hasilLaporan').innerHTML = html;
 }
-function ubahPilihanHadir(){
 
-    let jenis = document.getElementById('jenisHadir').value;
 
-    let harian = document.getElementById('pilihanHarian');
-    let bulanan = document.getElementById('pilihanBulanan');
+function tampilkanRiwayatHadir(){
 
-    harian.style.display = jenis === 'harian' ? 'block' : 'none';
-    bulanan.style.display = jenis === 'bulanan' ? 'block' : 'none';
-}
+    let tanggal = document.getElementById('tanggalRiwayat').value;
 
-function tampilkanRekapHadir(){
-
-    let jenis = document.getElementById('jenisHadir').value;
-
-    let periode = jenis === 'harian'
-        ? document.getElementById('tanggalRekapHadir').value
-        : document.getElementById('bulanHadir').value;
-
-    if(!periode){
-        alert('Silakan pilih tanggal atau bulan');
+    if(!tanggal){
+        alert('Silakan pilih tanggal');
         return;
     }
 
-    if(!db.hadir) db.hadir = {};
+    let data = db.hadir[tanggal] || {};
 
-    let rekap = db.siswa.map(nama => ({
-        nama: typeof nama === 'string' ? nama : nama.nama,
-        Hadir: 0,
-        Izin: 0,
-        Sakit: 0,
-        Alfa: 0
-    }));
-
-    Object.entries(db.hadir).forEach(([tanggal, data]) => {
-
-        if(jenis === 'harian' && tanggal !== periode) return;
-        if(jenis === 'bulanan' && !tanggal.startsWith(periode)) return;
-
-        Object.entries(data).forEach(([index, status]) => {
-
-            if(!rekap[index]) return;
-
-            if(['Hadir','Izin','Sakit','Alfa'].includes(status)){
-                rekap[index][status]++;
-            }
-        });
-    });
-
-    let total = {
-        Hadir: 0,
-        Izin: 0,
-        Sakit: 0,
-        Alfa: 0
-    };
+    if(db.siswa.length === 0){
+        document.getElementById('hasilRiwayatHadir').innerHTML =
+            '<p>Belum ada data siswa.</p>';
+        return;
+    }
 
     let html = `
-    <h3>Rekap Kehadiran ${periode}</h3>
+    <h3>Riwayat Kehadiran ${tanggal}</h3>
     <table border="1" cellpadding="7" cellspacing="0" width="100%">
-    <tr>
-        <th>Nama Siswa</th>
-        <th>Hadir</th>
-        <th>Izin</th>
-        <th>Sakit</th>
-        <th>Alfa</th>
-        <th>% Hadir</th>
-    </tr>`;
+        <tr>
+            <th>No</th>
+            <th>Nama Siswa</th>
+            <th>Status</th>
+        </tr>
+    `;
 
-    rekap.forEach(s => {
+    db.siswa.forEach((s, i) => {
 
-        let jumlah = s.Hadir + s.Izin + s.Sakit + s.Alfa;
-        let persen = jumlah
-            ? Math.round(s.Hadir / jumlah * 100)
-            : 0;
-
-        Object.keys(total).forEach(k => total[k] += s[k]);
+        let nama = typeof s === 'string' ? s : s.nama;
+        let status = data[i] || 'Belum dicatat';
 
         html += `
         <tr>
-            <td>${esc(s.nama)}</td>
-            <td>${s.Hadir}</td>
-            <td>${s.Izin}</td>
-            <td>${s.Sakit}</td>
-            <td>${s.Alfa}</td>
-            <td>${persen}%</td>
+            <td>${i+1}</td>
+            <td>${esc(nama)}</td>
+            <td>${esc(status)}</td>
         </tr>`;
     });
 
-    html += `
-    </table>
-    <h3>Jumlah Seluruh Kehadiran</h3>
-    <p>Hadir: ${total.Hadir}</p>
-    <p>Izin: ${total.Izin}</p>
-    <p>Sakit: ${total.Sakit}</p>
-    <p>Alfa: ${total.Alfa}</p>`;
+    html += '</table>';
 
-    document.getElementById('hasilRekapHadir').innerHTML = html;
+    document.getElementById('hasilRiwayatHadir').innerHTML = html;
+}
+function muatPilihanSiswa(){
+
+    let pilih = document.getElementById('siswaPerkembangan');
+    let terpilih = pilih.value;
+
+    pilih.innerHTML = '<option value="">Pilih Siswa</option>';
+
+    db.siswa.forEach((s,i) => {
+        let nama = typeof s === 'string' ? s : s.nama;
+
+        pilih.innerHTML += `
+        <option value="${i}">${esc(nama)}</option>`;
+    });
+
+    pilih.value = terpilih;
 }
 
 
+function simpanPerkembangan(){
+
+    let index = document.getElementById('siswaPerkembangan').value;
+    let tanggal = document.getElementById('tanggalPerkembangan').value;
+
+    if(index === '' || !tanggal){
+        alert('Pilih siswa dan tanggal terlebih dahulu');
+        return;
+    }
+
+    let siswa = db.siswa[index];
+    let nama = typeof siswa === 'string' ? siswa : siswa.nama;
+
+    let catatan = {
+        nama: nama,
+        tanggal: tanggal,
+        belajar: document.getElementById('belajarPerkembangan').value,
+        sikap: document.getElementById('sikapPerkembangan').value,
+        prestasi: document.getElementById('prestasiPerkembangan').value,
+        catatan: document.getElementById('catatanPerkembangan').value
+    };
+
+    if(!db.perkembangan) db.perkembangan = [];
+
+    db.perkembangan.push(catatan);
+
+    simpanData();
+
+    alert('Catatan perkembangan berhasil disimpan');
+
+    document.getElementById('belajarPerkembangan').value = '';
+    document.getElementById('sikapPerkembangan').value = '';
+    document.getElementById('prestasiPerkembangan').value = '';
+    document.getElementById('catatanPerkembangan').value = '';
+
+    tampilkanPerkembangan();
+}
+
+
+function tampilkanPerkembangan(){
+
+    if(!db.perkembangan) db.perkembangan = [];
+
+    let html = '';
+
+    db.perkembangan.slice().reverse().forEach(c => {
+
+        html += `
+        <div class="item">
+            <b>${esc(c.nama)} - ${esc(c.tanggal)}</b>
+            <p>Perkembangan Belajar: ${esc(c.belajar)}</p>
+            <p>Sikap dan Perilaku: ${esc(c.sikap)}</p>
+            <p>Prestasi: ${esc(c.prestasi)}</p>
+            <p>Catatan Guru: ${esc(c.catatan)}</p>
+        </div>`;
+    });
+
+    document.getElementById('daftarPerkembangan').innerHTML =
+        html || '<p>Belum ada catatan perkembangan.</p>';
+}
 function cetakLaporan(){
 
     if(window.Android &&
