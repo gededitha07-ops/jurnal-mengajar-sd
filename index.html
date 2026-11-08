@@ -423,11 +423,11 @@ function ubahPilihanHadir(){
 
     let jenis = document.getElementById('jenisHadir').value;
 
-    document.getElementById('pilihanHarian')
-        .classList.toggle('hidden', jenis !== 'harian');
+    let harian = document.getElementById('pilihanHarian');
+    let bulanan = document.getElementById('pilihanBulanan');
 
-    document.getElementById('pilihanBulanan')
-        .classList.toggle('hidden', jenis !== 'bulanan');
+    harian.style.display = jenis === 'harian' ? 'block' : 'none';
+    bulanan.style.display = jenis === 'bulanan' ? 'block' : 'none';
 }
 
 
