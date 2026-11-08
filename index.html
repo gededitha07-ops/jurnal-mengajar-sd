@@ -20,7 +20,45 @@ label{display:block;font-weight:bold;margin:12px 0 6px}
 .hidden{display:none}
 .item{padding:12px;border-bottom:1px solid #ddd}
 h3{color:#075db8}
-@media print{header,button,.no-print{display:none!important}body{background:white}}
+@media print{
+
+    body *{
+        visibility:hidden!important;
+    }
+
+    #laporan,
+    #laporan *{
+        visibility:visible!important;
+    }
+
+    #laporan{
+        display:block!important;
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        margin:0;
+        padding:0;
+        box-shadow:none;
+        border:none;
+        background:white;
+    }
+
+    #laporan button,
+    #laporan input,
+    #laporan select,
+    #laporan label{
+        display:none!important;
+    }
+
+    body{
+        background:white;
+    }
+}
+
+@page{
+    margin:12mm;
+}
 </style>
 </head>
 <body>
