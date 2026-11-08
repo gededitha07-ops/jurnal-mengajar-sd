@@ -276,7 +276,109 @@ let data=db.jurnal.filter(j=>j.tanggal.startsWith(b));
 hasilLaporan.innerHTML='<h3>'+data.length+' Jurnal</h3>'+
 data.map(j=>`<div class="item"><b>${esc(j.tanggal)} - ${esc(j.mapel)}</b><br>${esc(j.materi)}<br>${esc(j.hasil)}</div>`).join('');
 }
+function tampilkanRekapHadir(){
 
+    let bulanDipilih =
+        document.getElementById('bulanHadir').value;
+
+    if(!bulanDipilih){
+        alert('Pilih bulan terlebih dahulu');
+        return;
+    }
+
+    let rekap = db.siswa.map(nama => ({
+        nama: nama,
+        Hadir: 0,
+        Izin: 0,
+        Sakit: 0,
+        Alfa: 0
+    }));
+
+    Object.keys(db.hadir).forEach(tanggal => {
+
+        if(!tanggal.startsWith(bulanDipilih)) return;
+
+        let data = db.hadir[tanggal];
+
+        Object.keys(data).forEach(index => {
+
+            if(!rekap[index]) return;
+
+            let status = data[index];
+
+            if(rekap[index][status] !== undefined){
+                rekap[index][status]++;
+            }
+        });
+    });
+
+    let total = {
+        Hadir: 0,
+        Izin: 0,
+        Sakit: 0,
+        Alfa: 0
+    };
+
+    let html = `
+    <h3>Rekap Kehadiran Bulan ${bulanDipilih}</h3>
+    <table border="1" cellpadding="7"
+    cellspacing="0" width="100%">
+    <tr>
+        <th>Nama Siswa</th>
+        <th>Hadir</th>
+        <th>Izin</th>
+        <th>Sakit</th>
+        <th>Alfa</th>
+        <th>% Hadir</th>
+    </tr>`;
+
+    rekap.forEach(s => {
+
+        let jumlah =
+            s.Hadir + s.Izin + s.Sakit + s.Alfa;
+
+        let persen = jumlah
+            ? Math.round(s.Hadir / jumlah * 100)
+            : 0;
+
+        total.Hadir += s.Hadir;
+        total.Izin += s.Izin;
+        total.Sakit += s.Sakit;
+        total.Alfa += s.Alfa;
+
+        html += `
+        <tr>
+            <td>${esc(s.nama)}</td>
+            <td>${s.Hadir}</td>
+            <td>${s.Izin}</td>
+            <td>${s.Sakit}</td>
+            <td>${s.Alfa}</td>
+            <td>${persen}%</td>
+        </tr>`;
+    });
+
+    html += '</table>';
+
+    html += `
+    <h3>Jumlah Seluruh Kehadiran</h3>
+    <p>Hadir: ${total.Hadir}</p>
+    <p>Izin: ${total.Izin}</p>
+    <p>Sakit: ${total.Sakit}</p>
+    <p>Alfa: ${total.Alfa}</p>`;
+
+    document.getElementById('hasilRekapHadir').innerHTML =
+        html;
+}
+
+function cetakLaporan(){
+
+    if(window.Android &&
+       typeof Android.cetak === 'function'){
+        Android.cetak();
+    }else{
+        window.print();
+    }
+}
 function backup(){
 let a=document.createElement('a');
 let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
