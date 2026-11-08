@@ -597,12 +597,14 @@ function tampilkanPerkembangan(){
 }
 function cetakLaporan(){
 
-    if(window.Android &&
-       typeof Android.cetak === 'function'){
+    if(window.Android && typeof Android.cetak === 'function'){
         Android.cetak();
-    }else{
-        window.print();
+        return;
     }
+
+    setTimeout(function(){
+        window.print();
+    }, 300);
 }
 function backup(){
 
